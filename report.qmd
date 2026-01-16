@@ -1,0 +1,2125 @@
+---
+title: "The Factory of the Future: Manufacturing in 2040"
+subtitle: "A Scenario-Based Analysis of Discrete and Process Manufacturing"
+author:
+  - name: "Nayeemuddin Mohammed"
+date: "January 2026"
+format:
+  pdf:
+    documentclass: article
+    geometry: 
+      - margin=1in
+    fontsize: 11pt
+    toc: true
+    keep-tex: true
+    fig-pos: 'H'
+    tbl-pos: 'H'
+    toc-depth: 3
+    number-sections: true
+    colorlinks: true
+    link-citations: true
+    linkcolor: blue
+    citecolor: blue
+    urlcolor: blue
+    fig-cap-location: bottom
+    tbl-cap-location: top
+    code-block-bg: true
+    code-block-border-left: "#3498DB"
+    highlight-style: github
+bibliography: references.bib
+csl: apa-numeric.csl
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+```{r setup, include=FALSE}
+# Load required libraries
+library(tidyverse)      # Data manipulation & ggplot2
+library(scales)         # Axis formatting
+library(ggrepel)        # Text labels without overlap
+library(patchwork)      # Multi-panel layouts
+library(fmsb)           # Radar charts
+library(knitr)          # Knitr for chunks
+library(kableExtra)     # Professional tables
+library(grid)           # Grid graphics
+library(gridExtra)      # Arrange multiple plots
+library(gtable)
+
+# Enable LaTeX color packages for kableExtra
+options(kableExtra.latex.load_packages = TRUE)
+options(knitr.table.format = "latex")
+
+# Set global knitr options
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center",
+  fig.width = 7,
+  fig.height = 5,
+  dpi = 300,
+  dev = "png"
+)
+
+# Define professional color palette
+colors_professional <- c(
+  primary = "#2C3E50",      # Dark blue-gray
+  secondary = "#3498DB",    # Medium blue
+  accent = "#85C1E2",       # Light blue
+  success = "#27AE60",      # Green
+  warning = "#F39C12",      # Orange
+  danger = "#E74C3C",       # Red
+  gray_dark = "#7F8C8D",    # Dark gray
+  gray_light = "#BDC3C7"    # Light gray
+)
+
+# Define scenario colors for consistency
+colors_scenarios <- c(
+  "Scenario 1" = "#E74C3C",  # Red - Tech-Driven
+  "Scenario 2" = "#27AE60",  # Green - Balanced
+  "Scenario 3" = "#F39C12"   # Orange - Disruption
+)
+
+# Create custom professional theme
+theme_professional <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      # Text elements
+      plot.title = element_text(
+        size = base_size + 3,
+        face = "bold",
+        color = colors_professional["primary"],
+        hjust = 0,
+        margin = margin(b = 10)
+      ),
+      plot.subtitle = element_text(
+        size = base_size + 1,
+        color = colors_professional["gray_dark"],
+        hjust = 0,
+        margin = margin(b = 15)
+      ),
+      plot.caption = element_text(
+        size = base_size - 2,
+        color = colors_professional["gray_dark"],
+        hjust = 1,
+        margin = margin(t = 10)
+      ),
+      
+      # Axis elements
+      axis.title = element_text(
+        size = base_size,
+        color = colors_professional["primary"],
+        face = "bold"
+      ),
+      axis.text = element_text(
+        size = base_size - 1,
+        color = colors_professional["gray_dark"]
+      ),
+      axis.line = element_line(
+        color = colors_professional["gray_light"],
+        linewidth = 0.5
+      ),
+      
+      # Panel elements
+      panel.grid.major = element_line(
+        color = colors_professional["gray_light"],
+        linewidth = 0.3
+      ),
+      panel.grid.minor = element_blank(),
+      panel.background = element_rect(fill = "white", color = NA),
+      plot.background = element_rect(fill = "white", color = NA),
+      
+      # Legend elements
+      legend.position = "bottom",
+      legend.title = element_text(
+        size = base_size,
+        face = "bold",
+        color = colors_professional["primary"]
+      ),
+      legend.text = element_text(
+        size = base_size - 1,
+        color = colors_professional["gray_dark"]
+      ),
+      legend.background = element_rect(fill = "white", color = NA),
+      legend.key = element_rect(fill = "white", color = NA),
+      
+      # Strip elements (for facets)
+      strip.text = element_text(
+        size = base_size,
+        face = "bold",
+        color = colors_professional["primary"]
+      ),
+      strip.background = element_rect(
+        fill = colors_professional["accent"],
+        color = NA
+      ),
+      
+      # Plot margins
+      plot.margin = margin(10, 10, 10, 10)
+    )
+}
+
+# Set as default theme
+theme_set(theme_professional())
+
+# Helper function for formatting large numbers
+format_number <- function(x) {
+  case_when(
+    abs(x) >= 1e9 ~ paste0(round(x/1e9, 1), "B"),
+    abs(x) >= 1e6 ~ paste0(round(x/1e6, 1), "M"),
+    abs(x) >= 1e3 ~ paste0(round(x/1e3, 1), "K"),
+    TRUE ~ as.character(round(x, 0))
+  )
+}
+
+# Helper function for percentage formatting
+format_percent <- function(x, digits = 0) {
+  paste0(round(x, digits), "%")
+}
+
+# Helper function for currency formatting
+format_currency <- function(x) {
+  paste0("$", format_number(x))
+}
+```
+
+\newpage
+
+# Executive Summary
+
+Manufacturing faces significant transformation by 2040 driven by artificial intelligence, advanced robotics, digital twin technology, and human centric design principles. Rather than predicting a single future, this report analyzes three distinct scenarios based on critical decisions in workforce development, technology investment, and supply chain architecture.
+
+Our analysis reveals that Scenario 2 (Balanced Human-AI Collaboration) represents the most probable pathway, with an estimated 50-60% likelihood of materializing by 2040, contingent on sustained policy commitment and corporate investment in workforce development. Key findings:
+
+-   Technology adoption is likely to advance, but with significant regional and sectoral variation; no single technology will achieve universal deployment [@deloitte2024; @mckinsey2024; @accenture2025]
+
+-   Workforce transition represents the critical differentiator between success and disruption; 30-40% job displacement is possible without proactive reskilling investment [@forrester2025; @innovatek2025]
+
+-   Decision points in 2025-2032 will determine scenario outcomes choices made today regarding AI investment and workforce development will have measurable effects by 2030 [@strategicmarket2025]
+
+-   Industry 5.0 principles (human-centricity, resilience, sustainability) appear necessary but not sufficient for inclusive manufacturing transformation [@europeancommission2024]
+
+This report grounds projections in current research, acknowledges uncertainties inherent in 15 year forecasts, and provides decision-makers with structured frameworks for strategy development.
+
+\newpage
+
+# Introduction
+
+## The Manufacturing Inflection Point
+
+Manufacturing stands at a critical juncture. Technologies once considered aspirational artificial intelligence for production orchestration, humanoid robots for assembly tasks, digital twins for risk free experimentation have transitioned from laboratory prototypes to operational deployments in leading facilities.
+
+Recent evidence demonstrates this shift: A 2024 Deloitte survey found that 55% of industrial product manufacturers are actively deploying generative AI tools, up from 29% utilizing AI/ML at facility scale [@digitalcommerce2025]. However, this adoption remains concentrated among technology leaders only 51.6% of manufacturers have established formal AI strategies [@mlc2024]. This gap between early adopters and the broad manufacturing base creates uncertainty about adoption velocity and diffusion patterns.
+
+Simultaneously, manufacturers confront workforce challenges. Forrester estimates that 34% of European jobs (approximately 12 million positions) face automation risk by 2040, with manual and routine positions at highest risk [@forrester2025]. Yet paradoxically, 2 million manufacturing positions remain unfilled globally despite workforce displacement concerns, reflecting a skills mismatch rather than labor surplus [@institutefuture2024].
+
+These converging pressures technological acceleration, workforce uncertainty, geopolitical supply chain fragmentation create genuine ambiguity about manufacturing's future. This report employs scenario analysis to explore plausible pathways rather than predict a predetermined future.
+
+## Research Questions
+
+**Primary:** What will manufacturing—both discrete assembly (automotive, electronics) and process production (pharmaceuticals, chemicals) resemble in 2040 across different strategic choices and external conditions?
+
+**Secondary Questions:**
+
+1.  Which technologies are likely to achieve widespread adoption versus remaining niche applications?
+2.  How will workforce roles transform across discrete and process manufacturing?
+3.  What skills will workers require to remain competitive, and at what scale can reskilling programs realistically operate?
+4.  How do different strategic choices regarding AI investment, supply chain architecture, and workforce development shift outcome probabilities?
+5.  What differentiates organizations that successfully navigate transformation from those that experience disruption?
+
+## Scope and Boundaries
+
+**Time Horizon:** 2025-2040, with explicit attention to decision points in 2025-2026, 2027-2028, 2030-2032, and 2032-2035
+
+**Manufacturing Types Examined:**
+
+-   **Discrete Manufacturing:** Automotive, consumer electronics, industrial machinery characterized by countable outputs and assembly based processes
+
+-   **Process Manufacturing:** Pharmaceutical, specialty chemicals, food and beverage characterized by recipe-based continuous or batch production
+
+**Geographic Focus:** Global analysis with emphasis on developed manufacturing regions (North America, Western Europe, East Asia) explicitly acknowledges that emerging economies may experience different adoption pathways
+
+**Key Variables:** Technology adoption rates and depth, workforce capability and transition success, supply chain architecture (centralized vs. distributed), AI autonomy levels, sustainability integration, geopolitical disruptions
+
+## Methodology: The Scenario Technique
+
+Rather than forecasting a single future state, we employ the scenario technique to develop three internally consistent narratives based on different assumptions about critical variables. This approach is particularly suited to manufacturing because:
+
+**Exponential uncertainty:** AI and robotics adoption follow S-curves with uncertain inflection points traditional linear forecasting is inappropriate [@bown2024; @arthurdlittle2024]
+
+**Multiple futures plausibility:** Current evidence supports divergent interpretations of adoption velocity, workforce outcomes, and technology substitution patterns
+
+**Strategic decision impact:** Manufacturing futures are not predetermined but contingent on investments and policies made in 2025-2028 [@li2022]
+
+**Scenario distinctiveness:** Each scenario represents mutually exclusive combinations of critical variables that produce materially different outcomes
+
+### Critical Descriptors (Five Key Variables)
+
+We identify five structural variables that significantly influence manufacturing futures. Each descriptor has three states that combine to determine scenario characteristics:
+
+```{r}
+#| label: tbl-critical-descriptors
+#| tbl-cap: "Five Critical Descriptors Defining Scenario Characteristics"
+#| tbl-pos: 'H'
+
+# Create the critical descriptors table
+critical_descriptors <- data.frame(
+  Descriptor = c(
+    "Technology Adoption",
+    "Workforce Transition",
+    "Supply Chain",
+    "AI Autonomy",
+    "Sustainable Integration"
+  ),
+  Minimal = c(
+    "20-30\\% factories by 2040",
+    "Inadequate reskilling; 50-70\\% job displacement",
+    "Centralized hubs persist",
+    "Supervised - Human-controlled",
+    "Linear economy adoption"
+  ),
+  Trend = c(
+    "60-75\\% with oversight",
+    "30-40\\% net job reduction and upskilled transitions",
+    "Hybrid distributed networks",
+    "50-50 collaboration",
+    "60-70\\% circular; 15\\% energy cut"
+  ),
+  Extreme = c(
+    "85-95\\% autonomous",
+    "70-80\\% retained in upgraded roles",
+    "70-80\\% local micro-factories",
+    "85-95\\% AI decisions",
+    "100\\% circular; 30-50\\% energy cut"
+  )
+)
+
+# Create table with full grid lines
+critical_descriptors %>%
+  kbl(booktabs = FALSE,                    # Changed to FALSE for grid lines
+      align = c("l", "l", "l", "l"),
+      escape = FALSE) %>%
+  kable_styling(
+    latex_options = c("striped", "HOLD_position"),
+    full_width = TRUE,
+    font_size = 9,
+    position = "center"
+  ) %>%
+  column_spec(1, bold = TRUE, width = "7em", border_right = TRUE) %>%     # Added border_right
+  column_spec(2, width = "12em", border_right = TRUE) %>%                 # Added border_right
+  column_spec(3, width = "12em", border_right = TRUE) %>%                 # Added border_right
+  column_spec(4, width = "12em") %>%
+  row_spec(0, bold = TRUE) %>%
+  add_header_above(c("Variable" = 1, "State Spectrum" = 3), bold = TRUE)
+```
+
+
+
+### Evidence Base and Sourcing
+
+This analysis synthesizes evidence from multiple sources to ground scenarios in observable trends:
+
+**Academic research (2023-2025):** AI impact on manufacturing, workforce dynamics, supply chain resilience [@pacheco2024; @priore2024; @cedefop2025]
+
+**Industry surveys:** Deloitte, McKinsey, BCG manufacturing surveys capturing adoption, investment plans, and organizational readiness [@deloitte2024; @mckinsey2024; @digitalcommerce2025; @mlc2024; @accenture2025]
+
+**Market research:** Humanoid robotics, AI platforms, industrial IoT markets from Grand View Research, BCC Research, Goldman Sachs [@goldmansachs2024; @bccresearch2025; @grandview2024]
+
+**Real-world implementations:** Documented case studies from Foxconn, Pegatron, Ola Electric, Continental, BMW demonstrating technology viability [@olaelectric2024; @continental2024; @pegatron2024]
+
+**Policy frameworks:** EU Industry 5.0 initiative, US manufacturing reshoring policies, Chinese AI regulations [@europeancommission2024; @euaiact2024]
+
+\newpage
+
+# Environmental Analysis: Technology Landscape
+
+## Current State of Manufacturing Technologies (2025)
+
+Manufacturing technology adoption remains highly stratified. Leading technology companies and Fortune 500 manufacturers have deployed AI pilots (55% of industrial manufacturers), while mid-tier and small manufacturers lag significantly [@digitalcommerce2025]. This divergence is important: manufacturing in 2040 will likely feature simultaneously a cutting-edge tier of fully autonomous facilities and a broad base of partially digitized operations.
+
+## The Seven Core Technologies: Realistic Assessment
+
+Rather than assert that all technologies persist, we assess each technology's maturity, adoption likelihood, and vulnerability to failure or substitution.
+
+### Artificial Intelligence and Machine Learning
+
+**Current State (2025):**
+
+-   35-55% of manufacturers using AI tools, primarily for predictive maintenance and quality control [@digitalcommerce2025; @allaboutai2025]
+-   Market size: \$5.94 billion (2024); projected \$68.36-230.95 billion by 2032-2034 [@allaboutai2025; @precedence2024]
+-   Specific impact: Predictive maintenance reduces costs 25% and downtime 30% [@institutefuture2024b]
+
+**2040 Projection (Scenario-Dependent):**
+
+-   Scenario 1: 90-95% of factories with autonomous AI orchestration
+-   Scenario 2: 65-75% with augmented AI (human-AI collaboration)
+-   Scenario 3: 25-35% with limited adoption
+
+**Risk Factors & Mitigation:**
+
+-   Data quality bottlenecks: Manufacturing lacks standardized data architectures AI effectiveness depends on data governance investments [@kagermann2023]
+-   Explainability concerns: Regulatory requirements for transparent AI decision-making may slow deployment in critical applications [@euaiact2024]
+-   Cybersecurity vulnerability: Increasing connectivity creates attack surface, ransomware could disable autonomous operations [@cisa2024]
+
+**Assessment:** AI adoption appears highly likely to increase substantially, but 100% deployment is unrealistic. Adoption ceiling estimated 75-85% by 2040 even in optimistic scenarios, with 20-35% in disruption scenarios [@mckinsey2024; @forrester2025].
+
+### Digital Twins and Cyber-Physical Systems
+
+**Current State (2025):**
+
+-   30% of factories using digital twins, primarily for visualization [@deloitte2024]
+-   Market projected \$75 billion by 2030-2040 [@digitaltwin2024]
+-   Documented ROI: Ola Electric achieved 20% faster time-to-market; Continental reduced maintenance downtime 10% [@olaelectric2024; @siemens2024]
+
+\newpage
+
+**2040 Projection:**
+
+-   Likely to become standard for large-scale manufacturing across scenarios due to clear ROI and risk reduction
+-   Adoption ceiling: 70-85% across all scenarios (limited adoption in Scenario 3)
+
+**Assessment:** Digital twin technology shows highest adoption probability of all technologies tested, driven by measurable ROI and low adoption barriers [@digitaltwin2024].
+
+### Humanoid and Collaborative Robots
+
+**Current Market Reality:**
+
+-   Global market: \$1.55 billion (2024); projected \$4.04 billion (2030) at 17.5% CAGR [@grandview2024]
+-   Alternative projection (BCC Research): \$1.9 billion (2025) → \$11 billion (2030) at 42.8% CAGR [@bccresearch2025]
+-   Goldman Sachs: \$38 billion by 2035, assuming 1.4 million units shipped, with 40% material cost reduction [@goldmansachs2024]
+-   Morgan Stanley: \$5 trillion by 2050 assuming 1 billion+ units [@morganstanley2025]
+
+**Critical Caveat on Projections:** Market forecasts diverge by order of magnitude (10x between conservative and aggressive estimates). This reflects genuine uncertainty about technology viability at scale, not poor forecasting [@goldmansachs2024; @morganstanley2025].
+
+**Cost Trajectory (Evidence-Based):**
+
+-   Current: \$50,000+ per unit (2024-2025)
+-   2028: Projected \$25,000 cost parity begins ROI justification [@goldmansachs2024]
+-   2030-2032: Cost decline may accelerate if manufacturing scales, but timing is assumption-dependent
+-   2040: Unit cost projections range \$5,000-15,000 depending on manufacturing volume
+
+```{r}
+#| label: fig-robot-cost-decline
+#| fig-cap: "Humanoid Robot Cost Decline Path: 2024-2040. Cost trajectory showing critical tipping points where ROI justification shifts adoption economics. Shaded regions indicate uncertainty ranges based on manufacturing scale assumptions."
+#| fig-width: 8
+#| fig-height: 5
+
+# Create data for humanoid robot cost decline
+robot_cost_data <- data.frame(
+  year = c(2024, 2026, 2028, 2030, 2032, 2035, 2038, 2040),
+  cost = c(50000, 40000, 25000, 18000, 12000, 8000, 6500, 5000),
+  cost_low = c(50000, 38000, 22000, 15000, 10000, 6000, 5000, 4000),
+  cost_high = c(50000, 45000, 30000, 22000, 15000, 11000, 9000, 7500)
+)
+
+# Key tipping points
+tipping_points <- data.frame(
+  year = c(2024, 2028, 2032, 2040),
+  cost = c(50000, 25000, 12000, 5000),
+  label = c("$50K\nCurrent State", "$25K\nROI Justification\nBegins", 
+            "Mass Adoption\nTipping Point", "$7.5K\nProjected\nCommodity Price")
+)
+
+# Create the plot
+ggplot() +
+  # Uncertainty ribbon
+  geom_ribbon(data = robot_cost_data, 
+              aes(x = year, ymin = cost_low, ymax = cost_high),
+              fill = colors_professional["accent"], alpha = 0.3) +
+  
+  # Main cost trajectory line
+  geom_line(data = robot_cost_data, 
+            aes(x = year, y = cost),
+            color = colors_professional["secondary"], 
+            linewidth = 1.2) +
+  
+  # Points at key years
+  geom_point(data = robot_cost_data, 
+             aes(x = year, y = cost),
+             color = colors_professional["secondary"], 
+             size = 3) +
+  
+  # Tipping point markers
+  geom_point(data = tipping_points, 
+             aes(x = year, y = cost),
+             color = colors_professional["danger"], 
+             size = 4, shape = 18) +
+  
+  # Tipping point labels
+  geom_text_repel(data = tipping_points,
+                  aes(x = year, y = cost, label = label),
+                  size = 3,
+                  color = colors_professional["primary"],
+                  fontface = "bold",
+                  box.padding = 0.5,
+                  point.padding = 0.3,
+                  segment.color = colors_professional["gray_light"],
+                  segment.size = 0.3,
+                  min.segment.length = 0) +
+  
+  # Formatting
+  scale_x_continuous(breaks = seq(2024, 2040, 2),
+                     limits = c(2024, 2040)) +
+  
+  scale_y_continuous(labels = scales::dollar_format(scale = 1/1000, suffix = "K"),
+                     breaks = seq(0, 50000, 10000),
+                     limits = c(0, 55000)) +
+  
+  labs(
+    title = "Humanoid Robot Cost Decline Path: 2024-2040",
+    subtitle = "Critical tipping points determine mass adoption timeline and economic feasibility",
+    x = "Year",
+    y = "Unit Cost (USD)",
+    caption = "Source: Goldman Sachs (2024), Morgan Stanley (2025), BCC Research (2025)\nShaded area represents uncertainty range based on manufacturing scale assumptions"
+  ) +
+  
+  theme_professional() +
+  
+  theme(
+    plot.caption = element_text(hjust = 0, size = 8, lineheight = 1.2)
+  )
+```
+
+**Adoption Barriers & Failure Modes:**
+
+-   Capital cost: \$50,000+ units remain unaffordable for SMEs representing two-thirds of European employment [@forrester2025]
+-   Task specificity: Current humanoid robots perform well in structured assembly but struggle with unstructured tasks [@mitbcg2024]
+-   Regulatory uncertainty: No international safety or deployment standards yet established [@iso2023]
+-   Labor market resistance: Potential for policy restrictions on autonomous systems if displacement occurs without reskilling support [@ukparliament2024]
+
+**Substitution Risk:** Specialized industrial robots (cheaper, proven) may outcompete humanoids in specific niches, reducing addressable market [@mckinsey2024robotics].
+
+**Assessment:** Humanoid robot adoption is probable but not certain, with 2030-2035 as the critical adoption period. Scenario 1 assumes rapid cost decline and mass deployment Scenario 3 assumes technology fails to meet performance targets or cost expectations. Most likely outcome (Scenario 2) sees selective deployment concentrated in automotive assembly and pharmaceutical manufacturing.
+
+### Edge Computing
+
+**Current Trajectory:** 74% of data expected to be processed outside traditional data centers by 2040 [@statista2024]
+
+**Assessment:** Edge computing appears robust across scenarios due to technical necessity (latency requirements) and existing deployment momentum. Low substitution risk.
+
+### Additive Manufacturing (3D Printing)
+
+**2040 Projection Claims - Evidence Assessment:** Current additive manufacturing penetration is approximately 5-8% of manufacturing by value [@deloitte2024additive]. Projections of higher penetration by 2040 would require:
+
+-   6-7x growth in 15 years (40%+ CAGR)
+-   Fundamental cost and speed improvements without clear evidence they will be achieved [@wohlers2024]
+-   Displacement of all traditional manufacturing methods in significant market segments
+
+**Revised Assessment:** Additive manufacturing will likely increase to 10-20% of manufacturing output by 2040 in best-case scenarios, concentrated in aerospace, medical devices, and high-value low-volume segments. Mass commodity manufacturing will remain subtractive/formative. Scenario 1 assumes 25-35% adoption; Scenario 2 assumes 12-18%; Scenario 3 assumes 5-8% [@pwc2024; @rolandberger2024].
+
+**Failure Mode:** If material costs and production speed don't improve as projected, additive manufacturing may plateau at 10-15% maximum market share.
+
+### Blockchain for Supply Chain Traceability
+
+**Assessment:** Blockchain faces significant adoption challenges despite theoretical advantages:
+
+-   Energy consumption concerns (Proof-of-Work systems conflict with sustainability mandates) [@digiconomist2024]
+-   Standardization barriers (no universal ledger protocol for supply chains) [@mckinsey2024blockchain]
+-   Alternative solutions (traditional databases) more cost-effective for most applications [@accenture2024blockchain]
+
+**2040 Projection:** Blockchain likely limited to specific high-value use cases (luxury goods authentication, rare earth materials traceability) rather than universal supply chain infrastructure. Adoption: 15-25% of manufacturers in Scenario 2, lower in Scenarios 1 and 3.
+
+### Quantum Computing
+
+**Realistic Timeline:** Commercial industrial applications unlikely before 2035-2036 operational deployment in manufacturing probably extends to 2040s [@mit2025quantum; @ibm2024quantum]
+
+**Assessment:** Quantum computing is high-potential but remains speculative for 2040 timeframe. Inclusion in scenarios reflects possibility, not probability. More conventional optimization methods (advanced AI, traditional computing) will handle most manufacturing problems through 2040.
+
+## Technology Convergence: Nuanced Assessment
+
+**Core Assessment:**
+
+-   Core technologies (AI, digital twins, edge computing) will likely spread broadly across manufacturing
+-   Specialized technologies (humanoids, quantum, additive manufacturing) will achieve selective adoption concentrated in specific industries and geographies
+-   Substitution and failure are realistic possibilities, blockchain may be displaced by traditional databases; quantum computing may remain niche; humanoid robots may lose market share to specialized alternatives
+-   Regional variation is substantial: developed economies trend toward Scenario 2, technology leaders (China, US) approach Scenario 1 selectively, emerging economies experience Scenario 3 characteristics [@mckinsey2024; @euaiact2024]
+
+**Technology Confidence Levels (2040):**
+
+```{r}
+#| label: tbl-tech-confidence
+#| tbl-cap: "Technology Adoption Confidence Levels by 2040 Scenario"
+#| tbl-pos: 'H'
+
+# Create technology confidence table
+tech_confidence <- data.frame(
+  Technology = c(
+    "AI and Machine Learning",
+    "Digital Twins",
+    "Humanoid Robots",
+    "Edge Computing",
+    "Additive Manufacturing",
+    "Blockchain",
+    "Quantum Computing"
+  ),
+  Scenario_1 = c("90-95%", "85-90%", "80-85%", "85-90%", "25-35%", "10-15%", "15-20%"),
+  Scenario_2 = c("65-75%", "70-80%", "40-50%", "70-80%", "12-18%", "15-25%", "5-10%"),
+  Scenario_3 = c("25-35%", "35-45%", "5-10%", "50-60%", "5-8%", "5-10%", "1-3%"),
+  Confidence_Level = c("High", "Very High", "Medium", "High", "Medium", "Low", "Low")
+)
+
+# Create table with consistent styling
+tech_confidence %>%
+  kbl(booktabs = FALSE,
+      align = c("l", "c", "c", "c", "c"),
+      col.names = c("Technology", "Scenario 1", "Scenario 2", "Scenario 3", "Confidence Level"),
+      escape = TRUE) %>%
+  kable_styling(
+    latex_options = c("HOLD_position"),
+    full_width = TRUE,
+    font_size = 10,
+    position = "center"
+  ) %>%
+  column_spec(1, bold = TRUE, width = "10em", border_right = TRUE) %>%
+  column_spec(2, width = "7em", border_right = TRUE) %>%
+  column_spec(3, width = "7em", border_right = TRUE) %>%
+  column_spec(4, width = "7em", border_right = TRUE) %>%
+  column_spec(5, width = "8em") %>%
+  row_spec(0, bold = TRUE)
+```
+
+\newpage
+
+# Three Scenarios for 2040
+
+## Scenario Development Methodology
+
+Scenarios are not predictions but exploratory frameworks. Each reflects a consistent combination of critical descriptors and plausible external conditions. Probability estimates reflect current policy momentum, corporate strategy, and feasibility assessments, but are inherently uncertain given the 15-year timeframe.
+
+## Probability Derivation and Calculation Methodology
+
+### Theoretical Foundation: Why This Probability Design is Valid
+
+Our probability weighting methodology is grounded in established scenario analysis best practices combining three academic approaches [@amer2013]:
+
+1.  **Structured Expert Elicitation Model** [@colson2018][@bojke2021] - Using published research as systematic "expert" input, validated against empirical evidence
+
+2.  **Analytical Hierarchy Process (AHP) Principles** [@pmoces][@pmi] - Breaking complex problem into dimensional components scored against evidence
+
+3.  **Cross-Impact Balance Analysis** [@banuls2011][@weimerJehle2006] - Checking scenario consistency through impact weighting
+
+**Why This Approach is Valid for Manufacturing Forecasting:**
+
+-   Transparent: Each probability weight is explicitly justified by cited research
+-   Reproducible: The methodology can be applied by other researchers with same data
+-   Academically Rigorous: Combines established scenario techniques [@amer2013][@cordova2023]
+-   Appropriate for 15-year Horizons: Expert judgment validated through evidence rather than speculation
+-   Includes Built-in Sensitivity Checks: Allows testing how assumptions affect probabilities
+
+### Research-Based Weighting Framework
+
+The scenario probabilities are derived from a weighted assessment of four critical dimensions, each grounded in empirical research and cited evidence:
+
+**DIMENSION 1: POLICY MOMENTUM (40% Weight)**
+
+Justification for 40% weighting: Policy creates regulatory environment that either enables or constrains transformation speed. Governments control workforce programs, manufacturing incentives, AI governance. Historical scenario analysis research emphasizes policy as primary driver [@amer2013][@cordova2023].
+
+-   **Research sources:** EU Industry 5.0 framework [@europeancommission2024], US manufacturing reshoring initiatives [@euaiact2024], Chinese AI regulation policy [@euaiact2024]
+
+-   **Evidence assessment:**
+
+    -   EU Industry 5.0 explicitly recommends balanced human-AI approaches (supports Scenario 2) [@europeancommission2024]
+    -   US policies emphasize manufacturing resilience and workforce development (Scenario 2 characteristics)
+    -   Chinese policies pursue aggressive AI adoption BUT with manufacturing distributed across different regions (allows Scenario 1-2 mix)
+
+-   **Scoring methodology:** On 10-point scale where 10 = strong policy support for scenario
+
+    -   Scenario 1 (Tech-Driven): Policy support = 3/10 (few governments openly support mass displacement)
+    -   Scenario 2 (Balanced): Policy support = 6/10 (multiple policy frameworks align with this)
+    -   Scenario 3 (Disruption): Policy support = 2/10 (no government strategy aims for this)
+
+-   **Calculation:** 40% weight × scenario scores = probability contribution
+
+    -   Scenario 1: 40% × (3/10) = 1.2 units
+    -   Scenario 2: 40% × (6/10) = 2.4 units
+    -   Scenario 3: 40% × (2/10) = 0.8 units
+
+**DIMENSION 2: CORPORATE STRATEGY (30% Weight)**
+
+Justification for 30% weighting: Corporate investments and strategic decisions made 2025-2028 determine technology adoption paths. Companies control capital allocation. Industry trends show clear strategic preferences [@mckinsey2024][@digitalcommerce2025][@accenture2025].
+
+-   **Research sources:** McKinsey manufacturing surveys [@mckinsey2024], Deloitte organizational readiness [@digitalcommerce2025], case studies from BMW, Tesla, Moderna, Siemens [@olaelectric2024][@continental2024][@pegatron2024]
+
+-   **Evidence assessment:**
+
+    -   70% of technology leaders pursuing human-robot collaboration models [@mckinsey2024]
+    -   20% pursuing full autonomy strategies
+    -   10% remaining traditional
+    -   Deloitte finds 55% of manufacturers prioritize GenAI but in augmented, not autonomous, modes [@digitalcommerce2025]
+
+-   **Scoring methodology:** 10-point scale where 10 = clear corporate preference
+
+    -   Scenario 1 (Tech-Driven): Corporate preference = 2/10 (few companies openly plan for 60% workforce displacement)
+    -   Scenario 2 (Balanced): Corporate preference = 7/10 (most corporate strategy documents align here)
+    -   Scenario 3 (Disruption): Corporate preference = 3/10 (companies don't plan for failure, but some risk this outcome)
+
+-   **Calculation:**
+
+    -   Scenario 1: 30% × (2/10) = 0.6 units
+    -   Scenario 2: 30% × (7/10) = 2.1 units
+    -   Scenario 3: 30% × (3/10) = 0.9 units
+
+**DIMENSION 3: TECHNOLOGY READINESS (20% Weight)**
+
+Justification for 20% weighting: Technology maturity constrains what's actually feasible. Current evidence on cost curves, performance capabilities, and adoption rates limits scenario possibilities [@bown2024][@arthurdlittle2024][@goldmansachs2024][@morganstanley2025].
+
+-   **Research sources:** Goldman Sachs humanoid robot analysis [@goldmansachs2024], Morgan Stanley forecasts [@morganstanley2025], S-curve adoption models [@bown2024][@arthurdlittle2024]
+
+-   **Evidence assessment:**
+
+    -   AI at 35-55% adoption (heading toward 75-85% likely)
+    -   Digital twins at 30% adoption (heading toward 70-80% likely)
+    -   Humanoid robots at 0.5% adoption, cost \$50K+, uncertain path to \$10K by 2032
+    -   Quantum computing still pre-commercial for manufacturing
+
+-   **Scoring methodology:** 10-point scale where 10 = technology fully ready to support scenario
+
+    -   Scenario 1 (Tech-Driven): Technology readiness = 4/10 (humanoid robot timeline uncertain; quantum unproven)
+    -   Scenario 2 (Balanced): Technology readiness = 6.5/10 (AI/digital twins ready; robots gradual adoption feasible)
+    -   Scenario 3 (Disruption): Technology readiness = 5/10 (technology could underperform; adoption could stall)
+
+-   **Calculation:**
+
+    -   Scenario 1: 20% × (4/10) = 0.8 units
+    -   Scenario 2: 20% × (6.5/10) = 1.3 units
+    -   Scenario 3: 20% × (5/10) = 1.0 units
+
+**DIMENSION 4: WORKFORCE FEASIBILITY (10% Weight)**
+
+Justification for 10% weighting: Workforce transition success is constraint, not primary driver. However, failure to manage workforce creates political backlash that constrains policy/corporate options [@forrester2025][@wef2023].
+
+-   **Research sources:** Forrester job displacement forecasts [@forrester2025], WEF reskilling research [@wef2023], historical workforce transition studies
+
+-   **Evidence assessment:**
+
+    -   50% workforce requires reskilling by 2028 [@wef2023]
+    -   Social pressure against rapid displacement is increasing [@forrester2025]
+    -   Reskilling success: 70-80% with structured programs, 30-40% ad-hoc
+
+-   **Scoring methodology:** 10-point scale where 10 = workforce transition fully feasible
+
+    -   Scenario 1 (Tech-Driven): Workforce feasibility = 2/10 (60-70% displacement creates severe political challenges; feasible only with UBI or equivalent)
+    -   Scenario 2 (Balanced): Workforce feasibility = 8/10 (30-40% displacement manageable with structured reskilling)
+    -   Scenario 3 (Disruption): Workforce feasibility = 4/10 (chaotic, but technically feasible as baseline scenario)
+
+-   **Calculation:**
+
+    -   Scenario 1: 10% × (2/10) = 0.2 units
+    -   Scenario 2: 10% × (8/10) = 0.8 units
+    -   Scenario 3: 10% × (4/10) = 0.4 units
+
+### Probability Calculation Formula and Results
+
+**Step 1: Sum probability units for each scenario**
+
+Total possible units (normalization factor) = (40% ÷ 10) + (30% ÷ 10) + (20% ÷ 10) + (10% ÷ 10) = 1.0
+
+-   Scenario 1: 1.2 + 0.6 + 0.8 + 0.2 = **2.8 units**
+-   Scenario 2: 2.4 + 2.1 + 1.3 + 0.8 = **6.6 units**
+-   Scenario 3: 0.8 + 0.9 + 1.0 + 0.4 = **3.1 units**
+
+**Step 2: Calculate percentage probability**
+
+Total units = 2.8 + 6.6 + 3.1 = 12.5 units
+
+-   Scenario 1: (2.8 ÷ 12.5) × 100 = 22.4% ≈ **20-25%**
+-   Scenario 2: (6.6 ÷ 12.5) × 100 = 52.8% ≈ **50-60%**
+-   Scenario 3: (3.1 ÷ 12.5) × 100 = 24.8% ≈ **25%**
+
+**Final Probability Distribution:**
+
+-   **Scenario 1 (Tech-Driven Autonomy): 20-25%**
+-   **Scenario 2 (Balanced Human-AI Collaboration): 50-60%** ← Most Probable
+-   **Scenario 3 (Disruption \\& Fragmentation): 15-25%**
+
+### Important Caveats and Limitations
+
+1.  **Qualitative, Not Quantitative Modeling:** These probabilities represent structured expert judgment synthesis, NOT statistical modeling. They are illustrative for strategic planning, not predictive.
+
+2.  **15-Year Horizon Uncertainty:** Forecast accuracy decreases with time. These probabilities are most useful for identifying decision points (2025-2032) rather than precise 2040 predictions.
+
+3.  **Assumption Sensitivity:** Small changes in assumed policy direction, technology cost curves, or corporate strategy can materially shift probabilities (see Section 3.2.5).
+
+4.  **Regional Variation:** These are global averages. Developed economies (EU, North America) likely experience Scenario 2. Technology leaders (China, US advanced regions) may experience Scenario 1. Emerging economies may experience Scenario 3.
+
+### Sensitivity Analysis: How Probability Shifts with Key Assumptions
+
+**If AI Investment Increases (\>\$500B globally 2025-2026):**
+
+-   Policy momentum score → 7/10 for Scenario 1, 5/10 for Scenario 2
+-   Scenario 1 probability increases to 30-35%
+-   Scenario 2 probability decreases to 50-55%
+-   Scenario 3 probability decreases to 15%
+
+**If Workforce Reskilling Investment Decreases (\<\$100B annually):**
+
+-   Workforce feasibility score → Scenario 2: 4/10, Scenario 3: 7/10
+-   Scenario 2 probability decreases to 40-45%
+-   Scenario 3 probability increases to 40-45%
+
+**If Humanoid Robot Costs Decline Faster (\$10K by 2030 instead of 2032):**
+
+-   Technology readiness score → Scenario 1: 7/10
+-   Scenario 1 probability increases to 28-32%
+
+**If Major Geopolitical Disruption Occurs (2027-2030):**
+
+-   All technology readiness scores decrease
+-   Scenario 3 probability increases to 35-40%
+-   Scenario 2 probability decreases to 45-50%
+
+**Conclusion on Sensitivity:** Scenario 2 remains most probable across most assumption variations, demonstrating robustness of the central finding. However, probabilities are dynamic and should be reviewed biennially as new evidence emerges.
+
+## Scenario Comparison: Key Metrics
+
+```{r}
+#| label: fig-radar-scenario-comparison
+#| fig-cap: "Five Critical Descriptors Across Three Scenarios. Radar chart comparing technology adoption, workforce transition, supply chain architecture, AI autonomy, and sustainability integration across the three 2040 scenarios."
+#| fig-width: 8
+#| fig-height: 8
+#| fig-pos: 'H'
+
+library(fmsb)
+
+# Create data for radar chart (values 0-10 scale)
+radar_data <- data.frame(
+  `Technology Adoption` = c(10, 0, 9.5, 7.0, 2.5),      # Max, Min, Scenario 1, 2, 3
+  `Workforce Transition` = c(10, 0, 2.0, 7.5, 3.0),
+  `Supply Chain` = c(10, 0, 8.0, 6.0, 2.5),
+  `AI Autonomy` = c(10, 0, 9.5, 5.0, 3.0),
+  `Sustainability` = c(10, 0, 9.0, 7.0, 2.0),
+  check.names = FALSE
+)
+
+# Row names
+rownames(radar_data) <- c("Max", "Min", "Scenario 1:Tech-Driven", 
+                           "Scenario 2: Balanced", "Scenario 3: Disruption")
+
+# Define colors for scenarios
+colors <- c(
+  colors_professional["danger"],      # Scenario 1 - Red
+  colors_professional["success"],     # Scenario 2 - Green  
+  colors_professional["warning"]      # Scenario 3 - Orange
+)
+
+# Create the radar chart
+par(mar = c(1, 1, 3, 1), mfrow = c(1, 1))
+
+radarchart(
+  radar_data[c(1, 2, 3, 4, 5), ],
+  axistype = 1,
+  pcol = colors,
+  pfcol = scales::alpha(colors, 0.3),
+  plwd = 3,
+  plty = 1,
+  cglcol = "grey",
+  cglty = 1,
+  axislabcol = colors_professional["primary"],
+  caxislabels = seq(0, 10, 2.5),
+  cglwd = 0.8,
+  vlcex = 0.9,
+  title = "Scenario Comparison: Five Critical Descriptors"
+)
+
+# Add legend
+legend(
+  x = 0.16,      # Move left (was "topright")
+  y = 1.15,      # Move up slightly
+  legend = c("Scenario 1: Tech-Driven Autonomy (20-25%)",
+             "Scenario 2: Balanced Collaboration (50-60%)", 
+             "Scenario 3: Disruption & Fragmentation (15-25%)"),
+  col = colors,
+  lty = 1,
+  lwd = 3,
+  cex = 0.8,
+  bty = "n"
+)
+```
+
+\newpage
+
+## SCENARIO 1: Tech-Driven Autonomy (Estimated 20-25% Probability)
+
+### Defining Characteristics
+
+Rapid AI and robotics adoption with aggressive automation of manufacturing processes. Factories operate with 85-95% autonomous orchestration, achieving significant productivity gains (140-160% improvement vs. 2025 baseline) but displacing 50-70% of workforce without proportional job creation [@forrester2025][@goldmansachs2024].
+
+This scenario assumes:
+
+-   AI investment commitments of \$500+ billion globally in 2025-2026
+-   Humanoid robot costs decline to \$20,000 by 2028 and \$10,000 by 2032, accelerating adoption beyond current forecasts
+-   Political systems tolerate or manage mass workforce displacement through policy mechanisms (universal basic income, accelerated reskilling)
+-   Supply chain resilience proves less important than efficiency maximization
+
+### Technology Assumptions
+
+-   90-95% of factories achieve AI-enabled autonomous orchestration by 2040
+-   Digital twins become standard operational model for all major facilities
+-   Humanoid robots proliferate to 500 million+ units globally by 2040
+-   Quantum computing delivers measurable optimization benefits by 2038-2040 for complex supply chain problems
+-   Additive manufacturing reaches 25-35% of high-complexity components
+
+**Key Uncertainties:** This scenario requires cost/performance improvements to materialize faster than current evidence supports. If humanoid robot costs stall above \$20,000 or performance remains limited, this scenario's probability declines substantially.
+
+### Workforce Impact
+
+```{r}
+#| label: fig-gantt-scenario1
+#| fig-cap: "Workforce Transformation Timeline - Scenario 1: 2025-2040. Employment levels declining over three periods showing the dramatic workforce reduction under tech-driven autonomy."
+#| fig-width: 10
+#| fig-height: 6
+#| fig-pos: 'H'
+
+library(ggplot2)
+
+# Create Gantt chart data for Scenario 1
+gantt_data <- data.frame(
+  Period = c("2025-2028", "2028-2035", "2035-2040"),
+  Start_Year = c(2025, 2028, 2035),
+  End_Year = c(2028, 2035, 2040),
+  Employment = c(1.5, 0.6, 0.3),  # Million workers
+  Label = c("1.5M workers\\40% roles transformed Rapid reskilling",
+            "600K workers\\60% decline Humanoid deployment",
+            "300K workers\\75% total decline AI Conductors, Digital Twin Architects")
+)
+
+# Create Gantt timeline
+ggplot(gantt_data, aes(y = Period)) +
+  # Employment bars
+  geom_segment(aes(x = Start_Year, xend = End_Year, 
+                   y = Period, yend = Period,
+                   color = Employment, size = Employment * 3),
+               lineend = "butt", linejoin = "mitre") +
+  
+  # Start points
+  geom_point(aes(x = Start_Year, size = Employment * 5, color = Employment)) +
+  
+  # End points
+  geom_point(aes(x = End_Year, size = Employment * 5, color = Employment)) +
+  
+  # Labels
+  geom_text(aes(x = (Start_Year + End_Year) / 2, label = Label),
+            size = 3, vjust = -2.75, color = colors_professional["primary"],
+            lineheight = 0.9) +
+  
+  # Styling
+  scale_color_gradient(low = colors_professional["danger"], 
+                       high = colors_professional["success"],
+                       guide = "none") +
+  scale_size_continuous(range = c(3, 15), guide = "none") +
+  scale_x_continuous(breaks = seq(2025, 2040, 3),
+                     limits = c(2024, 2041)) +
+  
+  labs(
+    title = "Workforce Transformation Timeline - Scenario 1",
+    subtitle = "Dramatic employment decline from 1.5M to 300K workers (75% reduction)",
+    x = "Year",
+    y = "Period",
+    caption = "Data: Automotive sector example | Scenario 1: Tech-Driven Autonomy"
+  ) +
+  
+  theme_professional() +
+  theme(
+    axis.text.y = element_text(size = 11, face = "bold"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90")
+  )
+```
+
+```{r}
+#| label: tbl-workforce-scenario1
+#| tbl-cap: "Workforce Transformation Phases - Scenario 1"
+#| tbl-pos: 'H'
+
+# Create workforce table for Scenario 1
+scenario1_workforce <- data.frame(
+  Period = c(
+    "2025-2028",
+    "2028-2035",
+    "2035-2040"
+  ),
+  `Employment Level` = c(
+    "1.5M automotive workers (start)",
+    "600K automotive workers (decline ~60\\%)",
+    "300K automotive workers"
+  ),
+  Characteristics = c(
+    "Rapid reskilling programs; 40\\% of roles transformed; early workforce resistance",
+    "Widespread humanoid robot deployment; severe job polarization; high-skill roles concentrated in optimization, remaining assembly work minimal",
+    "AI Conductors, Digital Twin Architects, Cobot Supervisors as primary roles; average 40\\% wage increase for remaining workers due to extreme specialization"
+  ),
+  check.names = FALSE
+)
+
+# Create table
+scenario1_workforce %>%
+  kbl(booktabs = FALSE,
+      align = c("l", "l", "l"),
+      escape = FALSE) %>%
+  kable_styling(
+    latex_options = c("HOLD_position"),
+    full_width = TRUE,
+    font_size = 9,
+    position = "center"
+  ) %>%
+  column_spec(1, bold = TRUE, width = "6em", border_right = TRUE) %>%
+  column_spec(2, width = "10em", border_right = TRUE) %>%
+  column_spec(3, width = "16em")
+```
+
+**Critical Risk:** 1.2 million displaced workers from automotive sector alone, requiring massive retraining infrastructure with uncertain success rates.
+
+### Key Opportunities
+
+-   Manufacturing becomes hypercompetitive globally; extreme product customization at minimal cost
+-   Sustainability targets exceeded through optimization
+-   Manufacturing resurgence potential in developed nations if robots prove cost-competitive with labor arbitrage
+
+### Key Risks
+
+-   Social and political backlash against mass displacement without adequate support systems
+-   Wealth concentration in technology-leading companies and shareholders
+-   Cybersecurity vulnerabilities in highly connected, autonomous systems
+-   Regional manufacturing collapse in areas unable to transition
+
+
+## SCENARIO 2: Balanced Human-AI Collaboration (Estimated 50-60% Probability)
+
+### Defining Characteristics
+
+Measured AI and robotics adoption with proactive workforce development programs. Factories operate with 60-75% AI-enabled processes while maintaining 30-40% human decision-making authority. Achieves 110-130% productivity improvement vs. 2025 baseline with 20-35% net workforce reduction [@mckinsey2024][@deloitte2024].
+
+This scenario assumes:
+
+-   AI investment proceeds at \$200-400 billion globally in 2025-2028
+-   Humanoid robot costs decline gradually to \$25,000 by 2030, enabling selective deployment
+-   Structured reskilling programs achieve 60-70% workforce retention in transformed roles
+-   Policy frameworks emphasize balanced technological progress with workforce stability (EU Industry 5.0 model)
+-   Supply chains balance efficiency with resilience
+
+### Technology Assumptions
+
+-   65-75% of factories achieve AI-augmented operations with human oversight by 2040
+-   Digital twins used for optimization but humans make final strategic decisions
+-   Humanoid robots deployed selectively (150-250 million units globally), concentrated in automotive and electronics
+-   Collaborative robots (cobots) become standard in manufacturing
+-   Additive manufacturing reaches 12-18% of production
+
+**Key Rationale:** This scenario aligns with current policy momentum (EU Industry 5.0 framework), corporate strategies emphasizing human-machine collaboration, and workforce feasibility constraints. Most probable outcome based on weight of evidence.
+
+### Workforce Impact
+
+```{r}
+#| label: fig-waterfall-scenario2
+#| fig-cap: "Net Employment Effect - Scenario 2: Balanced Collaboration. Waterfall chart showing jobs created, jobs displaced, and net employment change from 2025 to 2040."
+#| fig-width: 10
+#| fig-height: 6
+#| fig-pos: 'H'
+
+library(ggplot2)
+library(scales)
+
+# Create waterfall chart data for Scenario 2
+waterfall_data <- data.frame(
+  Category = factor(c("2025 Baseline", "Jobs Created (New Roles)", 
+                      "Jobs Displaced (Automation)", "Structural Unemployment",
+                      "2040 Net Employment"),
+                    levels = c("2025 Baseline", "Jobs Created (New Roles)", 
+                               "Jobs Displaced (Automation)", "Structural Unemployment",
+                               "2040 Net Employment")),
+  Amount = c(1500, 300, -600, -150, 1050),
+  Type = c("Baseline", "Increase", "Decrease", "Decrease", "Net"),
+  End = c(1500, 1800, 1200, 1050, 1050),
+  Start = c(0, 1500, 1800, 1200, 0)
+)
+
+# Calculate positions for waterfall
+waterfall_data$id <- seq_along(waterfall_data$Category)
+waterfall_data$End <- cumsum(waterfall_data$Amount)
+waterfall_data$End[waterfall_data$Type == "Net"] <- waterfall_data$Amount[waterfall_data$Type == "Net"]
+waterfall_data$Start[waterfall_data$Type == "Net"] <- 0
+
+for(i in 2:(nrow(waterfall_data)-1)) {
+  if(waterfall_data$Type[i] != "Net") {
+    waterfall_data$Start[i] <- waterfall_data$End[i-1]
+    waterfall_data$End[i] <- waterfall_data$Start[i] + waterfall_data$Amount[i]
+  }
+}
+
+# Create waterfall chart
+ggplot(waterfall_data, aes(x = Category, fill = Type)) +
+  geom_rect(aes(x = Category, 
+                xmin = id - 0.4, xmax = id + 0.4,
+                ymin = Start, ymax = End)) +
+  
+  # Connecting lines
+  geom_segment(data = waterfall_data[1:(nrow(waterfall_data)-1),],
+               aes(x = id + 0.4, xend = id + 1 - 0.4,
+                   y = End, yend = End),
+               linetype = "dashed", color = "gray50") +
+  
+  # Value labels
+  geom_text(aes(x = Category, 
+                y = ifelse(Amount >= 0, End + 50, End - 50),
+                label = ifelse(abs(Amount) >= 100, 
+                              paste0(ifelse(Amount > 0, "+", ""), 
+                                    format(Amount, big.mark = ",")), "")),
+            size = 4, fontface = "bold",
+            color = colors_professional["primary"]) +
+  
+  # Net employment labels on bars
+  geom_text(aes(x = Category,
+                y = (Start + End) / 2,
+                label = format(End, big.mark = ",", suffix = "K")),
+            size = 3.5, color = "white", fontface = "bold") +
+  
+  scale_fill_manual(values = c("Baseline" = colors_professional["primary"],
+                               "Increase" = colors_professional["success"],
+                               "Decrease" = colors_professional["danger"],
+                               "Net" = colors_professional["secondary"])) +
+  
+  scale_y_continuous(labels = comma_format(suffix = "K"),
+                     breaks = seq(0, 2000, 250)) +
+  
+  labs(
+    title = "Net Employment Effect - Scenario 2: Balanced Collaboration",
+    subtitle = "Jobs created (+300K) partially offset jobs displaced (-600K) for 30% net reduction",
+    x = NULL,
+    y = "Employment (thousands)",
+    caption = "Data: Automotive sector example | Scenario 2: Balanced Human-AI Collaboration",
+    fill = NULL
+  ) +
+  
+  theme_professional() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10),
+    panel.grid.major.x = element_blank()
+  )
+```
+
+```{r}
+#| label: tbl-workforce-scenario2
+#| tbl-cap: "Workforce Transformation Phases - Scenario 2"
+#| tbl-pos: 'H'
+
+# Create workforce table for Scenario 2
+scenario2_workforce <- data.frame(
+  Period = c(
+    "2025-2028",
+    "2028-2035",
+    "2035-2040"
+  ),
+  `Employment Level` = c(
+    "1.5M automotive workers (start)",
+    "1.1M automotive workers (decline ~25\\%)",
+    "1.0M automotive workers (decline ~30\\%)"
+  ),
+  Characteristics = c(
+    "Structured reskilling with clear career pathways; employer-sponsored training at 2-3\\% of payroll; 70\\% workforce retention",
+    "Mixed human-robot teams become standard; 30\\% net job creation in new roles; workers transition to complex problem-solving and customization oversight",
+    "Human-AI collaboration maturity; 15-20\\% wage increases for transitioned workers; job satisfaction improvements due to elimination of repetitive tasks"
+  ),
+  check.names = FALSE
+)
+
+# Create table
+scenario2_workforce %>%
+  kbl(booktabs = FALSE,
+      align = c("l", "l", "l"),
+      escape = FALSE) %>%
+  kable_styling(
+    latex_options = c("HOLD_position"),
+    full_width = TRUE,
+    font_size = 9,
+    position = "center"
+  ) %>%
+  column_spec(1, bold = TRUE, width = "6em", border_right = TRUE) %>%
+  column_spec(2, width = "10em", border_right = TRUE) %>%
+  column_spec(3, width = "16em")
+```
+
+### Key Opportunities
+
+-   Sustainable employment levels with improved job quality
+-   Worker well-being and job satisfaction prioritized
+-   Resilient manufacturing systems less vulnerable to disruptions
+-   Competitive manufacturing with human expertise as differentiator
+-   Social stability maintained through managed transition
+
+### Key Risks
+
+-   Slower productivity gains than Scenario 1; competitive pressure from early adopters
+-   Higher training costs and longer transformation timeline
+-   Complexity in managing human-AI collaboration interfaces
+
+
+## SCENARIO 3: Disruption & Fragmentation (Estimated 15-25% Probability)
+
+### Defining Characteristics
+
+**The Lost Decade:** AI implementation stalls due to complexity, capital requirements, skill bottlenecks, or policy resistance. Supply chain disruptions (geopolitical tensions, climate impacts) prevent coordinated technology deployment at scale. Workforce displacement accelerates without adequate reskilling infrastructure. Manufacturing fragments between technology leaders (Scenario 1 characteristics) and struggling mid-tier/small manufacturers (traditional approaches). Only 20-30% productivity gains achieved, significant competitiveness loss.
+
+### Technology Assumptions
+
+- 25-35% of factories achieve meaningful AI adoption by 2040; the remaining 65-75% operate with selective automation
+- Digital twins limited to large enterprises; SMEs unable to access or afford technology
+- Humanoid robot deployment delayed or stalled due to cost barriers, regulatory uncertainty, or performance limitations
+- Supply chain disruptions prevent coordinated technology deployment; manufacturing localizes despite efficiency losses
+- Cybersecurity incidents deter investment in highly connected systems
+
+**Key Vulnerabilities:** This scenario materializes if multiple negative factors converge: cost curves don't decline as projected, regulatory barriers emerge, workforce resistance intensifies, or major disruptions (pandemic, conflict, climate events) derail transformation efforts.
+
+### Workforce Impact
+
+```{r}
+#| label: tbl-workforce-scenario3
+#| tbl-cap: "Workforce Transformation Phases - Scenario 3"
+#| tbl-pos: 'H'
+
+# Create workforce table for Scenario 3
+scenario3_workforce <- data.frame(
+  Period = c(
+    "2025-2028",
+    "2028-2035",
+    "2035-2040"
+  ),
+  `Employment Level` = c(
+    "1.5M automotive workers (start)",
+    "900K automotive workers (decline ~40\\%)",
+    "700K automotive workers"
+  ),
+  Characteristics = c(
+    "Automation deployed without systematic reskilling; widespread layoffs; youth disengage from manufacturing careers",
+    "Heterogeneous skills gaps; conflicting skill requirements; income inequality increases",
+    "Manufacturing concentrates in technology hubs; regional economic collapse in traditional manufacturing regions; wages stagnate"
+  ),
+  check.names = FALSE
+)
+
+# Create table
+scenario3_workforce %>%
+  kbl(booktabs = FALSE,
+      align = c("l", "l", "l"),
+      escape = FALSE) %>%
+  kable_styling(
+    latex_options = c("HOLD_position"),
+    full_width = TRUE,
+    font_size = 9,
+    position = "center"
+  ) %>%
+  column_spec(1, bold = TRUE, width = "6em", border_right = TRUE) %>%
+  column_spec(2, width = "10em", border_right = TRUE) %>%
+  column_spec(3, width = "16em")
+```
+
+### Key Risks
+
+- Manufacturing competitiveness collapses in developed nations; market share loss to competitors
+- Widespread unemployment and social unrest in industrial regions
+- Manufacturing innovation stalls as investment focuses on other sectors
+- Technology skill base erodes as young workers avoid manufacturing careers
+
+### Key Opportunities
+
+- Localized, community-based manufacturing resurgence in specific niches
+- Artisanal and customized production become competitive in certain segments
+- Lower technology requirements enable developing nation participation
+- Potential for human-scale manufacturing practices with higher job satisfaction
+
+\newpage
+
+## Critical Decision Points (2025-2035)
+
+The path from today's hybrid manufacturing systems to 2040's autonomous ecosystems depends on strategic choices made at four critical junctures. Each decision point shifts scenario probabilities, with early choices (2025-2028) having the greatest impact on final outcomes.
+
+
+### Decision Point 1: AI Investment Commitment (2025-2026)
+
+**The Choice:** Aggressive AI deployment vs. measured, phased adoption
+
+**Impact on Scenario Probabilities:**
+
+-   **High Investment (\$500B+ globally)** → Scenario 1 increases to 35-40%, Scenario 3 drops to 15%
+-   **Medium Investment (\$200-500B)** → Scenario 2 reaches 60% (most stable)
+-   **Low Investment (\<\$100B)** → Scenario 3 jumps to 40-45%
+
+**Critical Window:** Organizations making commitments now will see results by 2028-2029. Delays beyond 2027 significantly reduce competitive positioning.
+
+### Decision Point 2: Workforce Transition Strategy (2027-2028)
+
+**The Choice:** Proactive reskilling infrastructure vs. reactive layoff management
+
+**Impact:** Determines social stability and labor market outcomes regardless of technology success
+
+**Required Actions:**
+
+-   Structured reskilling programs with clear career pathways
+-   Employer-sponsored training (2-3% of payroll)
+-   Government co-investment in workforce development
+-   Early engagement with education systems
+
+**Consequence of Inaction:** Without proactive workforce programs, even successful technology adoption (Scenario 1 trajectory) risks political backlash that constrains deployment, pushing outcomes toward Scenario 3.
+
+### Decision Point 3: Automation Tipping Point (2030-2032)
+
+**The Choice:** When humanoid robot costs reach \<\$10,000, rapid adoption becomes cost-justified
+
+**Scenario Impact:**
+
+-   **Cost parity achieved on schedule** → Scenario 1 momentum accelerates
+-   **Delivery delayed 3+ years** → Scenario 2 or 3 becomes dominant
+-   **Technology fails to meet performance targets** → Scenario 3 probability increases
+
+**Technology Dependencies:**
+
+-   Manufacturing scale achieving projected cost reductions
+-   Performance meeting industrial requirements (precision, reliability, adaptability)
+-   Supply chain maturity supporting global deployment
+
+### Decision Point 4: Supply Chain Resilience Test (2032-2035)
+
+**The Choice:** Major geopolitical or climate disruption tests factory autonomy and distributed networks
+
+**Critical Factor:** Systems designed for resilience (Scenarios 1-2) withstand shocks better than centralized, vulnerable systems (Scenario 3)
+
+**Potential Disruptions:**
+
+-   Geopolitical decoupling (US-China, regional conflicts)
+-   Climate events disrupting critical manufacturing regions
+-   Pandemic or health crisis affecting labor availability
+-   Cybersecurity incidents targeting manufacturing networks
+
+**Outcome:** Manufacturers who invested in distributed networks, digital twins for rapid reconfiguration, and diverse supplier bases maintain operations. Those dependent on fragile, centralized systems experience severe disruption.
+
+### Synthesis: The Most Probable Path to 2040
+
+Based on current evidence and decision point analysis, the **most probable pathway** follows:
+
+1.  **2025-2026:** Medium AI investment (\$200-400B) → Scenario 2 probability strengthens
+2.  **2027-2028:** Proactive workforce programs in developed economies → Scenario 2 dominant
+3.  **2030-2032:** Gradual humanoid robot adoption (costs decline to \$15-25K) → Scenario 2 maintained
+4.  **2032-2035:** Resilient systems withstand moderate disruptions → **Scenario 2 (50-60%) confirmed as most likely 2040 outcome**
+
+**Alternative Paths:**
+
+-   **Accelerated Technology + Strong Workforce Support** → Scenario 1 (25-30%)
+-   **Delayed Technology OR Major Disruption** → Scenario 3 (20-25%)
+
+### Strategic Implications
+
+**For Manufacturers:**
+
+-   The 2025-2028 window is critical for technology investment and workforce development decisions
+-   Balanced approaches (Scenario 2) offer the best risk-adjusted outcomes
+-   Early movers gain advantage, but extreme automation (Scenario 1) carries social/political risks
+
+**For Workers:**
+
+-   Continuous learning is essential regardless of scenario
+-   Hybrid skills (technical + soft) provide greatest resilience
+
+\newpage
+
+# Workforce Transformation: Explicit Model and Assumptions
+
+## Quantifying the Workforce Challenge
+
+Current data on manufacturing employment risks and opportunities [@forrester2025][@institutefuture2024][@li2022]:
+
+**Job displacement risk:** 34% of European jobs face automation risk by 2040 (Forrester); approximately 12 million positions potentially affected [@forrester2025]
+
+**Manufacturing-specific risk:** Approximately 20-25% of US manufacturing employment vulnerable to automation, with routine assembly roles at highest risk [@li2022]
+
+**Skill gap:** 75% of global employers report inability to staff roles requiring technical skills; 2 million manufacturing positions unfilled despite displacement concerns [@mlc2024][@wef2023]
+
+**Youth labor participation:** 22-point decline in male youth (16-24) manufacturing career interest from 1989 to 2024, reflecting industry perception as declining [@forrester2025][@bls2024]
+
+## Workforce Transition Model (Scenario Comparison)
+
+According to the EPA's Regulatory Impact Analysis for the Clean Power Plan [@epa2015cleanpower], the net employment calculation follows a simple subtraction methodology.
+
+**Net Job Effect = (New Jobs Created) - (Jobs Displaced)**
+
+
+```{r}
+#| label: tbl-workforce-model
+#| tbl-cap: "Workforce Transition Model - Scenario Comparison"
+#| tbl-pos: 'H'
+
+# Create workforce transition model table
+workforce_model <- data.frame(
+  Factor = c(
+    "Jobs Displaced (\\%)",
+    "New Jobs Created (\\%)",
+    "Net Employment Change",
+    "Wage Change (median)"
+  ),
+  `Scenario 1` = c(
+    "60-70\\%",
+    "10-20\\%",
+    "-50\\% to -60\\%",
+    "+35\\% to +45\\% (for survivors)"
+  ),
+  `Scenario 2` = c(
+    "25-35\\%",
+    "30-40\\%",
+    "-5\\% to +5\\%",
+    "+12\\% to +20\\% (broader distribution)"
+  ),
+  `Scenario 3` = c(
+    "40-50\\%",
+    "5-15\\%",
+    "-35\\% to -45\\%",
+    "-5\\% to +5\\% (highly unequal)"
+  ),
+  check.names = FALSE
+)
+
+# Create table
+workforce_model %>%
+  kbl(booktabs = FALSE,
+      align = c("l", "l", "l", "l"),
+      escape = FALSE) %>%
+  kable_styling(
+    latex_options = c("HOLD_position"),
+    full_width = TRUE,
+    font_size = 9,
+    position = "center"
+  ) %>%
+  column_spec(1, bold = TRUE, width = "9em", border_right = TRUE) %>%
+  column_spec(2, width = "9em", border_right = TRUE) %>%
+  column_spec(3, width = "9em", border_right = TRUE) %>%
+  column_spec(4, width = "9em") %>%
+  row_spec(0, bold = TRUE)
+```
+
+**Key Assumption:** New job creation depends on economic growth, retraining success, and whether manufacturing sectors expand (e.g., cleantech, medical devices) to offset job losses in traditional segments.
+
+## Reskilling Requirements and Feasibility
+
+**Skills Gap Assessment:** The top 10 skills for manufacturing 2040 require fundamental upskilling across the workforce [@wef2023][@li2022]:
+
+1.  **Data Literacy and Analytics** (Importance: Critical; Change: Major shift from current state)
+
+2.  **Systems Thinking** (Importance: Critical; Change: Significant)
+
+3.  **Soft Skills: Communication, Problem-Solving** (Importance: Critical; Change: Moderate)
+
+4.  **Automation and Robotics Engineering** (Importance: High; Change: Moderate)
+
+5.  **AI Literacy and Model Interpretation** (Importance: High; Change: Major)
+
+6.  **Human-Machine Collaboration Design** (Importance: High; Change: Major)
+
+7.  **Process Improvement and Lean Manufacturing** (Importance: High; Change: Moderate)
+
+8.  **Domain Expertise** (Importance: High; Change: Minimal)
+
+9.  **Cybersecurity and Data Protection** (Importance: High; Change: Major)
+
+10. **Supply Chain Optimization** (Importance: Moderate; Change: Moderate)
+
+**Reskilling Investment Required:**
+
+-   **World Economic Forum Projection:** 50% of workforce requires reskilling by 2025-2028 [@wef2023]
+-   **Investment scale:** \$300-500 billion global investment needed [@mckinsey2024reskilling]
+-   **Employer responsibility:** 2-3% of payroll dedicated to continuous learning [@mckinsey2024]
+-   **Government co-investment:** Estimated \$100-200 billion annually for public programs [@oecd2024]
+
+**Feasibility Assessment:** Reskilling programs demonstrate 70-80% success rates when structured with clear career pathways and employer commitment; success rates drop to 30-40% in ad-hoc or underfunded programs [@li2022].
+
+## Industry 5.0 Principles
+
+**Definition:** Industry 5.0 represents a human-centric approach to manufacturing that emphasizes:
+
+-   **Human-Centricity:** Workers as strategic assets; automation augments rather than replaces
+-   **Resilience:** Systems designed to withstand disruptions through distributed networks and hybrid operation
+-   **Sustainability:** Circular economy principles embedded in production design
+
+**Implementation Reality:** These principles are aspirational frameworks; actual implementation requires sustained investment in workforce development, system redesign, and organizational culture change. Scenario 2 assumes meaningful adoption Scenarios 1 and 3 assume partial or token implementation [@europeancommission2024][@siemens2024industry5].
+
+\newpage
+
+# Strategic Implementation: Four-Phase Roadmap
+
+## Phase 1: Assessment and Planning (2025-2026)
+
+**Objectives:** Build foundation, define transformation roadmap, secure stakeholder alignment
+
+**Key Activities:**
+
+-   Conduct current state manufacturing operations assessment
+-   Identify 5-10 high-value use cases with clear ROI potential (predictive maintenance, quality inspection)
+-   Define success metrics (productivity, quality, cost, sustainability, workforce)
+-   Assess data infrastructure readiness and integration requirements
+-   Evaluate technology partners and ecosystem options
+
+**Investment:** \$200,000-500,000 per facility
+
+**Success Metrics:**
+
+-   Completed transformation roadmap with quantified business case
+-   Stakeholder alignment (executive team, union representatives where applicable)
+-   Data governance framework established
+
+## Phase 2: Pilot Implementation (2026-2027)
+
+**Objectives:** Prove value with targeted pilots, build organizational capabilities, generate lessons learned
+
+**Key Activities:**
+
+-   Deploy 2-3 high-impact pilot use cases in controlled environments
+-   Build digital twin infrastructure for pilot area
+-   Implement AI capabilities for targeted applications
+-   Deploy sensor and IoT infrastructure
+-   Train 20-50 staff on new technologies and processes
+-   Monitor performance rigorously and document lessons learned
+
+**Investment:** \$1-3 million per facility
+
+**Success Metrics:**
+
+-   15-20% productivity improvement in pilot area
+-   10-15% quality defect reduction
+-   Positive ROI within 12-18 months
+-   75%+ workforce adoption and satisfaction rates
+
+## Phase 3: Scale and Optimization (2027-2030)
+
+**Objectives:** Roll out proven capabilities across organization, integrate systems, build centers of excellence
+
+**Key Activities:**
+
+-   Expand successful pilots to 3-5 additional facilities
+-   Integrate systems across value chain (suppliers, logistics, quality)
+-   Implement advanced AI and robotics capabilities selectively
+-   Establish continuous improvement processes and governance
+-   Build internal center of excellence (15-30 dedicated staff)
+-   Expand ecosystem partnerships for specialized capabilities
+-   Launch structured workforce development programs
+
+**Investment:** \$5-15 million per facility
+
+**Success Metrics:**
+
+-   50% of operations transformed by 2028
+-   25-30% overall productivity gain
+-   Positive cash flow from transformation investments
+-   40-50% of workforce successfully transitioned to new roles
+
+## Phase 4: Innovation and Transformation (2030-2040)
+
+**Objectives:** Deploy cutting-edge technologies, achieve autonomous operations in appropriate areas, drive innovation
+
+**Key Activities:**
+
+-   Deploy advanced robotics (humanoid if cost-justified) selectively
+-   Achieve full supply chain visibility and integration
+-   Implement advanced AI and robotics capabilities (humanoid if cost-justified)
+-   Establish continuous improvement processes and governance
+-   Enable autonomous operations in appropriate manufacturing areas (Scenario-dependent: 50-95%)
+-   Share best practices across organization and industry
+-   Explore new business models enabled by smart factory capabilities
+
+**Investment:** \$10-30 million per facility
+
+**Outcomes (Scenario-Dependent):**
+
+-   **Scenario 1:** 140-160% productivity gain; industry leadership
+-   **Scenario 2:** 110-130% productivity gain; competitive positioning maintained
+-   **Scenario 3:** 20-40% productivity gain; competitiveness challenged
+
+\newpage
+
+
+# Discrete vs. Process Manufacturing: Operational Divergence
+
+## Technology Convergence, Operational Divergence
+
+While discrete and process manufacturing will adopt the same technological foundations (AI, digital twins, IoT, edge computing), operational implementations will diverge significantly.
+
+## Discrete Manufacturing: Automotive Exemplar
+
+**2040 Across Scenarios:**
+
+**Scenario 1 (Tech-Driven):** 85% of assembly tasks performed by humanoid robots; AI vision systems conduct real-time quality inspection; production lines reconfigure for new models in minutes; build-to-order manufacturing becomes standard; workforce reduced to 300,000 globally (from 1.2M in 2025).
+
+**Scenario 2 (Balanced):** Cobots work alongside human assembly specialists; humans focus on quality assurance and customization; digital twins assist planning; 70% of material movement automated; reconfiguration time reduced to hours; workforce maintained at 840,000 (30% reduction).
+
+**Scenario 3 (Disruption):** Traditional automated lines persist with limited innovation; premium brands maintain automation, mid-tier reverts to labor-intensive approaches; supply chain vulnerabilities force inefficient localization; workforce declines to 720,000 (40% reduction) with stagnant wages.
+
+```{r}
+#| label: fig-discrete-timeline
+#| fig-cap: "Discrete Manufacturing Transformation: Assembly Line Evolution 2025-2040. Timeline showing role transitions from manual assembly across three scenarios."
+#| fig-width: 14
+#| fig-height: 8
+#| fig-pos: 'H'
+
+library(ggplot2)
+
+# Create Gantt timeline data for discrete manufacturing transformation
+timeline_data <- data.frame(
+  Scenario = c(rep("Scenario 1: Tech-Driven", 3),
+               rep("Scenario 2: Balanced", 3),
+               rep("Scenario 3: Disruption", 3)),
+  Phase = rep(c("2025-2028", "2028-2035", "2035-2040"), 3),
+  Start = rep(c(2025, 2028, 2035), 3),
+  End = rep(c(2028, 2035, 2040), 3),
+  Description = c(
+    # Scenario 1
+    "Manual Assembly\n60% human-operated",
+    "Humanoid Robot Deployment\n40% automated",
+    "Autonomous Assembly\n85% robot-operated",
+    # Scenario 2
+    "Manual Assembly\n70% human-operated",
+    "Cobot Integration\n50% human-cobot teams",
+    "Collaborative Assembly\n60% cobot-assisted",
+    # Scenario 3
+    "Manual Assembly\n60% human-operated",
+    "Limited Automation\n65% still manual",
+    "Stagnation\n60% manual (minimal change)"
+  ),
+  # Shorter labels for on-bar text
+  Short_Label = c(
+    # Scenario 1
+    "60% human",
+    "40% automated",
+    "85% robot",
+    # Scenario 2
+    "70% human",
+    "50% teams",
+    "60% cobot",
+    # Scenario 3
+    "60% human",
+    "65% manual",
+    "60% manual"
+  ),
+  Automation_Level = c(
+    40, 60, 85,  # Scenario 1
+    30, 50, 60,  # Scenario 2
+    40, 35, 40   # Scenario 3
+  )
+)
+
+# Create color mapping
+timeline_data$Scenario_Factor <- factor(timeline_data$Scenario,
+                                        levels = c("Scenario 1: Tech-Driven",
+                                                  "Scenario 2: Balanced",
+                                                  "Scenario 3: Disruption"))
+
+# Create Gantt chart
+ggplot(timeline_data, aes(y = Scenario_Factor)) +
+  # Phase bars
+  geom_segment(aes(x = Start, xend = End, 
+                   y = Scenario_Factor, yend = Scenario_Factor,
+                   color = Automation_Level),
+               linewidth = 15, lineend = "butt") +
+  
+  # On-bar labels (short version)
+  geom_text(aes(x = (Start + End) / 2, label = Short_Label),
+            size = 3.5, color = "white", fontface = "bold") +
+  
+  # Below-bar phase descriptions (offset downward)
+  geom_text(aes(x = (Start + End) / 2, label = Phase,
+                y = as.numeric(Scenario_Factor) - 0.35),
+            size = 2.8, color = "gray40", fontface = "italic") +
+  
+  # Milestones
+  geom_point(aes(x = Start, color = Automation_Level), 
+             size = 5, shape = 21, fill = "white", stroke = 2.5) +
+  geom_point(aes(x = End, color = Automation_Level), 
+             size = 5, shape = 21, fill = "white", stroke = 2.5) +
+  
+  # Styling
+  scale_color_gradient(low = colors_professional["warning"],
+                       high = colors_professional["danger"],
+                       name = "Automation\nLevel (%)",
+                       breaks = seq(30, 90, 20)) +
+  
+  scale_x_continuous(breaks = seq(2025, 2040, 3),
+                     limits = c(2023.5, 2041),
+                     expand = c(0.01, 0)) +
+  
+  labs(
+    title = "Discrete Manufacturing Transformation: Assembly Line Evolution 2025-2040",
+    subtitle = "Three divergent pathways from manual assembly to varying levels of automation",
+    x = "Year",
+    y = NULL,
+    caption = "Data: Automotive sector assembly line evolution across scenarios"
+  ) +
+  
+  theme_professional() +
+  theme(
+    axis.text.y = element_text(size = 12, face = "bold"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90"),
+    legend.position = "right",
+    legend.title = element_text(size = 10, face = "bold"),
+    legend.text = element_text(size = 9),
+    plot.margin = margin(10, 10, 10, 10)
+  )
+```
+
+## Process Manufacturing: Pharmaceutical Exemplar
+
+**2040 Across Scenarios:**
+
+**Scenario 1 (Tech-Driven):** Continuous manufacturing becomes standard (90%+), personalized medicine manufacturing at scale through lot-size-one production; predictive quality AI prevents defective batches before production; regulatory compliance automated through smart contracts; workforce reduced to 120,000 (from 300,000 in 2025; 60% reduction).
+
+**Scenario 2 (Balanced):** Continuous manufacturing achieves 60-70% penetration, process control combines AI recommendations with operator expertise; augmented reality guides workers through complex procedures; 20% workforce reduction (240,000 workers); biotech technician skill levels required.
+
+**Scenario 3 (Disruption):** Batch manufacturing remains dominant, continuous manufacturing delayed; supply chain disruptions limit access to equipment; personalized medicine remains aspirational; 33% workforce reduction (200,000 workers).
+
+\newpage
+
+# Sustainability Integration
+
+## The 2040 Dual Mandate
+
+Manufacturing must achieve 100% sustainability while maintaining 130-150% productivity gains by 2040—a tension that cannot be fully resolved through technology alone [@tno2025].
+
+**Sustainability Targets (Scenario-Dependent):**
+
+-   **Scenario 1:** Energy reduction 40-50%; waste reduction 50%+; circular economy 80%+ adoption (unrealistic ceiling)
+-   **Scenario 2:** Energy reduction 25-35%; waste reduction 30-40%; circular economy 50-70% adoption
+-   **Scenario 3:** Energy reduction 10-15%; waste reduction 15-20%; circular economy 20-30% adoption
+
+```{r}
+#| label: fig-sustainability-metrics
+#| fig-cap: "Sustainability Metrics by Scenario. Grouped bar chart comparing energy reduction, waste reduction, and circular economy adoption across the three 2040 scenarios."
+#| fig-width: 10
+#| fig-height: 7
+#| fig-pos: 'H'
+
+library(ggplot2)
+library(tidyr)
+
+# Create sustainability metrics data
+sustainability_data <- data.frame(
+  Scenario = rep(c("Scenario 1 Tech-Driven", "Scenario 2 Balanced", "Scenario 3 Disruption"), 3),
+  Metric = c(rep("Energy Reduction (%)", 3),
+             rep("Waste Reduction (%)", 3),
+             rep("Circular Economy Adoption (%)", 3)),
+  Value = c(
+    45, 30, 12.5,  # Energy Reduction
+    50, 35, 17.5,  # Waste Reduction
+    80, 60, 25     # Circular Economy
+  )
+)
+
+# Create grouped bar chart
+ggplot(sustainability_data, aes(x = Metric, y = Value, fill = Scenario)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  
+  # Value labels on bars
+  geom_text(aes(label = paste0(round(Value, 1), "%")),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3.5, fontface = "bold") +
+  
+  # Styling
+  scale_fill_manual(
+    values = c("Scenario 1 Tech-Driven" = colors_professional["danger"],
+               "Scenario 2 Balanced" = colors_professional["success"],
+               "Scenario 3 Disruption" = colors_professional["warning"])
+  ) +
+  
+  scale_y_continuous(limits = c(0, 90),
+                     breaks = seq(0, 80, 20),
+                     labels = scales::percent_format(scale = 1)) +
+  
+  labs(
+    title = "Sustainability Metrics by Scenario",
+    subtitle = "Energy reduction, waste reduction, and circular economy adoption targets for 2040",
+    x = NULL,
+    y = "Achievement Level (%)",
+    fill = "Scenario",
+    caption = "Baseline: 0% = 2025 performance levels"
+  ) +
+  
+  theme_professional() +
+  theme(
+    legend.position = "top",
+    axis.text.x = element_text(size = 11, face = "bold"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "gray90")
+  )
+```
+
+**Key Mechanism:** Digital twins enable real-time sustainability optimization; AI identifies material reuse opportunities; blockchain provides environmental impact documentation. However, sustainability requires deliberate design choices, not automatic technology benefits.
+
+\newpage
+
+# Strategic Roadmap and Investment Allocation
+
+## Investment Categories
+
+```{r}
+#| label: fig-investment-allocation
+#| fig-cap: "Capital Allocation Distribution Across Seven Categories. Pie chart showing the recommended budget distribution for smart factory transformation investments."
+#| fig-width: 10
+#| fig-height: 8
+#| fig-pos: 'H'
+
+library(ggplot2)
+
+# Create investment allocation data
+investment_data <- data.frame(
+  Category = c("Robotics & Automation", 
+               "Digital Twin Infrastructure",
+               "AI/ML Platforms",
+               "IoT Sensors & Connectivity",
+               "System Integration",
+               "Training & Change Management",
+               "Cybersecurity"),
+  Percentage = c(35, 27.5, 17.5, 12.5, 12.5, 7.5, 7.5)
+)
+
+# Create labels with percentages for legend
+investment_data$Category_with_pct <- paste0(investment_data$Category, " (", 
+                                            investment_data$Percentage, "%)")
+
+# Define 7 distinct colors
+category_colors <- c(
+  "Robotics & Automation (35%)" = "#E74C3C",           # Red
+  "Digital Twin Infrastructure (27.5%)" = "#3498DB",   # Blue
+  "AI/ML Platforms (17.5%)" = "#2ECC71",              # Green
+  "IoT Sensors & Connectivity (12.5%)" = "#F39C12",   # Orange
+  "System Integration (12.5%)" = "#95A5A6",           # Gray
+  "Training & Change Management (7.5%)" = "#9B59B6",  # Purple
+  "Cybersecurity (7.5%)" = "#E67E22"                  # Dark Orange
+)
+
+# Create pie chart WITHOUT percentage labels on slices
+ggplot(investment_data, aes(x = "", y = Percentage, fill = Category_with_pct)) +
+  geom_bar(stat = "identity", width = 1, color = "white", linewidth = 1.5) +
+  
+  # Convert to pie chart
+  coord_polar(theta = "y", start = 0) +
+  
+  # Apply colors
+  scale_fill_manual(values = category_colors) +
+  
+  labs(
+    title = "Capital Allocation Distribution Across Seven Categories",
+    subtitle = "Recommended budget distribution for smart factory transformation",
+    fill = "Investment Category",
+    caption = "Total: 100% of smart factory transformation budget"
+  ) +
+  
+  theme_void() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5,
+                              color = "#2C3E50"),
+    plot.subtitle = element_text(size = 12, hjust = 0.5, 
+                                 color = "#7F8C8D", margin = margin(b = 20)),
+    legend.position = c(0.9, 0.5),  # Moved to the right edge, outside pie
+    legend.justification = c(0, 0.5),  # Anchor left edge of legend
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 12, face = "bold"),
+    plot.caption = element_text(size = 10, color = "gray50", hjust = 0.5,
+                                margin = margin(t = 15)),
+    plot.margin = margin(10, 80, 10, 10)  # Added right margin for legend space
+  )
+```
+
+**Typical Investment Ranges by Category:**
+
+```{r}
+#| label: tbl-investment-ranges
+#| tbl-cap: "Typical Investment Ranges by Category"
+#| tbl-pos: 'H'
+
+# Create investment ranges table (from your image)
+investment_ranges <- data.frame(
+  Category = c(
+    "Robotics and Automation",
+    "Digital Twin Infrastructure",
+    "AI/ML Platforms",
+    "IoT Sensors and Connectivity",
+    "System Integration",
+    "Training and Change ",
+    "Cybersecurity"
+  ),
+  Budget_Percent = c(
+    "35",
+    "27.5",
+    "17.5",
+    "12.5",
+    "12.5",
+    "7.5",
+    "7.5"
+  ),
+  Investment_Range = c(
+    "1M-10M",
+    "500K-5M",
+    "300K-3M",
+    "200K-2M",
+    "500K-3M",
+    "100K-500K",
+    "200K-1M"
+  )
+)
+
+# Create table with proper escaping
+investment_ranges %>%
+  kbl(booktabs = TRUE,
+      align = c("l", "c", "c"),
+      col.names = c("Category", "% of Budget", "Investment Range"),
+      escape = TRUE) %>%
+  kable_styling(
+    latex_options = c("HOLD_position", "striped"),
+    full_width = TRUE,
+    font_size = 10,
+    position = "center"
+  ) %>%
+  column_spec(1, bold = TRUE, width = "12em") %>%
+  column_spec(2, width = "7em") %>%
+  column_spec(3, width = "8em") %>%
+  row_spec(0, bold = TRUE)
+```
+
+**Typical Payback Period:** 18-36 months for focused implementations, with ongoing benefits continuing to accrue.
+
+## ROI Timeline
+
+```{r}
+#| label: fig-roi-timeline
+#| fig-cap: "Investment Recovery and Value Creation Timeline. Cumulative ROI trajectory showing investment recovery and value creation over 48 months."
+#| fig-width: 10
+#| fig-height: 6
+#| fig-pos: 'H'
+
+library(ggplot2)
+
+# Create ROI timeline data
+roi_data <- data.frame(
+  Month = c(0, 6, 12, 18, 24, 36, 48),
+  ROI_Percent = c(-100, -80, -50, 0, 25, 50, 75),
+  Phase = c("Initial Investment", "Early Implementation", "Pilot Results",
+            "Break-Even", "Positive Returns", "Sustained Value", "Mature ROI")
+)
+
+# Create line chart
+ggplot(roi_data, aes(x = Month, y = ROI_Percent)) +
+  # ROI line
+  geom_line(color = colors_professional["primary"], size = 2) +
+  
+  # Points at milestones
+  geom_point(size = 5, color = colors_professional["primary"], fill = "white",
+             shape = 21, stroke = 2) +
+  
+  # Break-even line
+  geom_hline(yintercept = 0, linetype = "dashed", color = colors_professional["success"],
+             size = 1) +
+  
+  # Value labels
+  geom_text(aes(label = paste0(ifelse(ROI_Percent >= 0, "+", ""), ROI_Percent, "%")),
+            vjust = -1.5, fontface = "bold", size = 4,
+            color = colors_professional["primary"]) +
+  
+  # Phase labels
+  geom_text(aes(label = Phase), vjust = 2,  hjust = -0.1, size = 3, 
+            color = colors_professional["secondary"], fontface = "italic") +
+  
+  # Shaded regions
+  annotate("rect", xmin = 0, xmax = 18, ymin = -110, ymax = -90,
+           fill = colors_professional["danger"], alpha = 0.2) +
+  annotate("text", x = 9, y = -95, label = "Investment Period",
+           size = 3.5, fontface = "bold", color = colors_professional["danger"]) +
+  
+  annotate("rect", xmin = 18, xmax = 48, ymin = -110, ymax = -90,
+           fill = colors_professional["success"], alpha = 0.2) +
+  annotate("text", x = 33, y = -95, label = "Value Creation Period",
+           size = 3.5, fontface = "bold", color = colors_professional["success"]) +
+  
+  # Styling
+  scale_x_continuous(breaks = seq(0, 48, 6),
+                     limits = c(0, 48)) +
+  scale_y_continuous(breaks = seq(-100, 80, 20),
+                     limits = c(-110, 85),
+                     labels = scales::percent_format(scale = 1)) +
+  
+  labs(
+    title = "Investment Recovery and Value Creation Timeline",
+    subtitle = "Cumulative ROI trajectory over 48 months for smart factory transformation",
+    x = "Time (Months)",
+    y = "Cumulative ROI (%)",
+    caption = "Break-even typically achieved at 18 months | Full value realization by 36-48 months"
+  ) +
+  
+  theme_professional() +
+  theme(
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+\newpage
+
+
+# Strategic Recommendations
+
+## For Manufacturing Executives
+
+**Establish formal AI strategy with quantified business case (Q1-Q2 2025)**
+
+-   Avoid technology-first mentality; start with value creation targets
+-   Allocate 3-5% of annual revenue for 18-24 month digital foundation investment
+
+**Launch workforce development program immediately (2025)**
+
+-   Assess skills gaps by role and geography
+-   Allocate 2-3% of payroll to continuous learning programs
+-   Partner with community colleges and training providers
+-   Target transition of 40-50% of workforce by 2028
+
+**Pilot Industry 5.0 manufacturing cells (2026-2027)**
+
+-   Design human-centric production cells with cobot integration
+-   Measure both productivity AND worker satisfaction
+-   Success metrics: 15-20% productivity, 25%+ worker satisfaction gain, 10-15% quality improvement
+
+**Think ecosystem, not single vendors**
+
+-   Build relationships with platform providers (NVIDIA, Siemens, Microsoft)
+-   Join industry consortiums and smart factory networks
+-   Develop supplier and partner ecosystems for complementary capabilities
+
+**Start with value, scale fast**
+
+-   Focus on 2-3 high-impact use cases with clear ROI
+-   Use early wins to build momentum and secure ongoing investment
+-   Scale successful pilots within 12-18 months
+
+## For Policymakers and Government
+
+**Co-invest in workforce development (estimated \$100-200B annually)**
+
+-   Mandate 3-5% employer investment in training or equivalent fund contribution
+-   Fund community college programs aligned with Industry 5.0 skills
+-   Support apprenticeship programs and on-the-job training
+
+**Create SME access to digital infrastructure**
+
+-   Shared digital twin platforms and AI tools accessible to small/medium enterprises
+-   Investment: \$50-100B to prevent manufacturing consolidation to mega-manufacturers
+-   Enable 80% of manufacturers (not just top 20%) to participate in transformation
+
+**Establish ethical AI governance (2025-2027)**
+
+-   Define standards for autonomous manufacturing decision-making
+-   Require transparency and explainability in AI systems
+-   Build public confidence while enabling innovation
+
+**Accelerate circular economy transition**
+
+-   Implement extended producer responsibility policies
+-   Subsidize recycling infrastructure and urban mining networks
+-   Mandate material traceability via blockchain in key sectors
+
+## For Workers and Labor Organizations
+
+**Prioritize continuous learning immediately (2025-2027)**
+
+-   Data literacy, automation basics, systems thinking are critical by 2030
+-   Pursue micro-credentials (AWS, Microsoft, Google) for demonstrated competency
+-   Expected timeline: 6-24 months for most critical skills
+
+**Evaluate employers on workforce development commitment**
+
+-   Ask: "What percentage of payroll is invested in training?" (Target: 2-3%)
+-   Seek organizations with clear career pathways and skill development commitment
+-   Avoid organizations planning displacement without proportional reskilling investment
+
+**Develop human-machine collaboration skills**
+
+-   This will be core competency by 2030 across all manufacturing roles
+-   Focus on areas where humans excel: creativity, complex problem-solving, relationship management
+-   Understand AI limitations and when to override autonomous systems
+
+**Recognize that manufacturing roles are fundamentally different in 2040**
+
+-   Not traditional assembly line work but data analysis, systems optimization, human-AI collaboration
+-   Higher skills → higher wages (15-40% increases for successfully transitioned workers)
+-   Job satisfaction improves as repetitive tasks are eliminated
+
+\newpage
+
+# Conclusions
+
+## Major Findings
+
+**1. Technology Convergence is Probable but Not Inevitable**
+
+All three scenarios converge on greater technology adoption, but adoption rates, depth, and regional variation remain uncertain. No technology achieves universal deployment, selective adoption and technology substitution are realistic outcomes. Confidence levels vary substantially across the technology portfolio, from high confidence (AI, digital twins, edge computing) to low confidence (quantum computing, blockchain, humanoid robots at current cost levels).
+
+**2. Workforce Transition is the Critical Differentiator**
+
+Technology capability determines the manufacturing floor; workforce management determines the ceiling. Scenario 1 achieves the highest productivity but carries highest social risks and requires massive reskilling investment without guaranteed success. Scenario 2 balances technological advancement with social sustainability, making it the most likely outcome given current policy direction and workforce pressures. Scenario 3 reflects the risk of technology underperformance combined with inadequate workforce support.
+
+**3. 2025-2032 Decisions Determine 2040 Outcomes**
+
+Four decision points materially shift scenario probabilities:
+
+-   **AI Investment 2025-2026:** \$500B+ global commitment favors Scenarios 1-2; \$100B or less risks Scenario 3
+
+-   **Workforce Strategy 2027-2028:** Proactive reskilling maintains social stability and enables meaningful automation
+
+-   **Automation Tipping Point 2030-2032:** Humanoid robot cost parity at \$10-15K accelerates Scenario 1; delays extend transition to Scenario 2-3
+
+-   **Supply Chain Resilience 2032-2035:** Distributed networks prove more robust than centralized systems in Scenario 3 stress test
+
+Decisions made in 2025-2026 will have measurable effects by 2030 and will significantly constrain choices available by 2035.
+
+**4. Industry 5.0 is Not Optional**
+
+Pure technological determinism (Scenario 1) faces insurmountable social and political resistance based on current evidence. The most likely future (Scenario 2) integrates Industry 5.0 principles (human-centricity, resilience, sustainability) as essential rather than optional.
+
+**5. Discrete and Process Manufacturing Converge Technologically, Diverge Operationally**
+
+Both sectors adopt identical technological foundations but implement them differently:
+
+-   **Discrete Manufacturing:** Modular assembly, mass customization, humanoid robot dexterity, real-time quality vision
+
+-   **Process Manufacturing:** Continuous flow, predictive quality AI, precision parameter control, automated regulatory compliance
+
+One-size-fits-all transformation strategies will fail, industry-specific approaches are essential.
+
+## Which Future Will Prevail?
+
+**Most Likely Outcome (50-60% probability): Scenario 2—Balanced Human-AI Collaboration**
+
+This scenario aligns with:
+
+-   **Policy momentum:** EU Industry 5.0, US manufacturing reshoring, Chinese AI regulation favor balanced approaches
+
+-   **Corporate strategy:** Leading manufacturers (BMW, Tesla, Moderna, Siemens) pursue human-robot collaboration models
+
+-   **Workforce reality:** Social pressure for job preservation; rapid displacement risks political backlash
+
+-   **Technology timeline:** Humanoid robot costs declining realistically but not collapsing; adoption feasible but not universal
+
+-   **Regional variation:** Developed nations trend toward Scenario 2; technology leaders approach Scenario 1 selectively; emerging economies experience Scenario 3 characteristics
+
+**Alternative Outcomes (20-25% and 15-20% probability):** Scenario 1 (Tech-Driven) remains possible if AI investment continues aggressively and society develops mechanisms (universal basic income) to manage displacement. Scenario 3 (Disruption) occurs if geopolitical shocks, technology underperformance, or policy reversals prevent coordinated transformation.
+
+## The Imperative for Action
+
+Manufacturing transformation is not a future event but a present reality. Organizations that establish digital foundations, launch workforce development programs, and pilot Industry 5.0 manufacturing cells in 2025-2026 will establish competitive advantages that compound through 2040.
+
+**Organizations that delay face increasing disadvantage:**
+
+-   **By 2028:** Early adopters will demonstrate clear productivity and quality advantages
+
+-   **By 2032:** Late-movers will struggle to catch up, cost of transformation increases as technology maturity stabilizes
+
+-   **By 2035:** Organizations locked into legacy systems face existential competitive challenges
+
+
+\newpage
+
+# References {.unnumbered}
